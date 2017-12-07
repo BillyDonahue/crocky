@@ -19,6 +19,9 @@ class Crocky:
 
         self.touch1 = touchio.TouchIn(board.A2)
 
+        self.slide = digitalio.DigitalInOut(board.D7)
+        self.slide.direction = digitalio.Direction.INPUT
+
         self.numPixels = 10
         self.neopixels = neopixel.NeoPixel(board.NEOPIXEL, self.numPixels,
                                            brightness=0.2, auto_write=False)
@@ -94,10 +97,32 @@ class Crocky:
             self.dlog("accept petting")
             self.onTouch()
 
+        self.dlog("slide: %d" % self.slide.value)
+
         if t_now - self.last_growl > 10.0:
-            self.dlog("growl")
-            self.growl()
+            self.dlog("time to growl")
+            if self.slide.value:
+                self.dlog("growl")
+                self.growl()
             self.last_growl = self.now()
+
+def test_neo(c):
+    neo = neopixel.NeoPixel(board.NEOPIXEL, 10,
+                            brightness=0.2, auto_write=False)
+    cl = []
+    for p in range(10):
+        cl.append(c)
+    neo[:] = cl
+    neo.show()
+
+def run_test_neo():
+    i = 0
+    while True:
+        test_neo([i,i,i])
+        i += 1
+        if i==255:
+            i = 0
+        time.sleep(0.1)
 
 crocky = Crocky()
 
