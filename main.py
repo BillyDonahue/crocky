@@ -21,6 +21,7 @@ class Crocky:
 
         self.slide = digitalio.DigitalInOut(board.D7)
         self.slide.direction = digitalio.Direction.INPUT
+        self.slide.pull = digitalio.Pull.UP
 
         self.numPixels = 10
         self.neopixels = neopixel.NeoPixel(board.NEOPIXEL, self.numPixels,
@@ -97,7 +98,7 @@ class Crocky:
             self.dlog("accept petting")
             self.onTouch()
 
-        self.dlog("slide: %d" % self.slide.value)
+        # self.dlog("slide: %d" % self.slide.value)
 
         if t_now - self.last_growl > 10.0:
             self.dlog("time to growl")
