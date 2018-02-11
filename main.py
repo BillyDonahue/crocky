@@ -30,7 +30,7 @@ class Crocky:
         self.color_growling = [0x00, 0x88, 0x00]
         self.color_happy = [0x44, 0x00, 0x00]
 
-        self.color_sleep1 = [0x44, 0x44, 0x44]
+        self.color_sleep1 = [0x22, 0x22, 0x22]
         self.color_sleep2 = [0x00, 0x00, 0x00]
 
         self.last_growl = self.now()
@@ -47,7 +47,7 @@ class Crocky:
       return out
 
     def setRing(self, c):
-      cpx.pixels.brightness = 0.3
+      cpx.pixels.brightness = 0.2
       for p in range(10):
         cpx.pixels[p] = c
 
@@ -61,19 +61,19 @@ class Crocky:
           time.sleep(duration / steps)
 
     def onTouch(self):
-        self.fade(self.color_normal, self.color_happy, duration=0.5, steps=10)
+        self.fade(self.color_normal, self.color_happy, duration=0.1, steps=5)
         cpx.play_file("um_i_love_you_mama.wav")
         while self.touch1.value:
             time.sleep(.1)
-        self.fade(self.color_happy, self.color_normal, duration=0.5, steps=10)
+        self.fade(self.color_happy, self.color_normal, duration=0.1, steps=5)
 
     def growl(self):
         cpx.play_file("gator.wav")
-        for t in range(10):
+        for t in range(5):
           self.setRing(self.color_growling)
-          time.sleep(.1)
+          time.sleep(.05)
           self.setRing(self.color_normal)
-          time.sleep(.1)
+          time.sleep(.05)
 
     def now(self):
         return time.monotonic()
@@ -95,9 +95,9 @@ class Crocky:
         self.update_accel()
 
         while self.a[2] < 0:
-          self.dlog("upside down! sleeeeepy...")
-          self.fade(self.color_sleep1, self.color_sleep2, 1.0, 10)
-          self.fade(self.color_sleep2, self.color_sleep1, 1.0, 10)
+          self.dlog("upside down! sleepy...")
+          self.fade(self.color_sleep1, self.color_sleep2, 0.5, 5)
+          self.fade(self.color_sleep2, self.color_sleep1, 0.5, 5)
           self.update_accel()
 
         # self.dlog("slide: %d" % self.slide.value)
