@@ -2,33 +2,44 @@
 # (Circuit Playground Express)
 
 import array
-import audioio
+# import audioio
 import board
 import digitalio
-import math
-import neopixel
+# import math
+# import neopixel
 import time
 import touchio
+
+from adafruit_circuitplayground.express import cpx
 
 class Crocky:
 
     def __init__(self):
-        spkrenable = digitalio.DigitalInOut(board.SPEAKER_ENABLE)
-        spkrenable.direction = digitalio.Direction.OUTPUT
-        spkrenable.value = True
+        # spkrenable = digitalio.DigitalInOut(board.SPEAKER_ENABLE)
+        # spkrenable.direction = digitalio.Direction.OUTPUT
+        # spkrenable.value = True
+
+        cpx.detect_taps = 1
 
         self.touch1 = touchio.TouchIn(board.A2)
 
-        self.slide = digitalio.DigitalInOut(board.D7)
-        self.slide.direction = digitalio.Direction.INPUT
+        #self.slide = digitalio.DigitalInOut(board.D7)
+        #self.slide.direction = digitalio.Direction.INPUT
+        #self.slide.pull = digitalio.Pull.UP
 
-        self.numPixels = 10
-        self.neopixels = neopixel.NeoPixel(board.NEOPIXEL, self.numPixels,
-                                           brightness=0.2, auto_write=False)
+        # self.numPixels = 10
+        # self.neopixels = neopixel.NeoPixel(board.NEOPIXEL, self.numPixels,
+        #                                    brightness=0.2, auto_write=False)
         self.color_normal = [0x00, 0x44, 0x00]
         self.color_growling = [0x00, 0x88, 0x00]
         self.color_happy = [0x44, 0x00, 0x00]
+
+        self.color_sleep1 = [0x44, 0x44, 0x44]
+        self.color_sleep2 = [0x00, 0x00, 0x00]
+
         self.last_growl = self.now()
+
+        self.a = (0, 0, 0)
 
     def interp(self, x0, x1, frac):
         return x0 + frac * (x1 - x0)
@@ -40,11 +51,9 @@ class Crocky:
       return out
 
     def setRing(self, c):
-      cl = []
-      for p in range(self.numPixels):
-          cl.append(c)
-      self.neopixels[:] = cl
-      self.neopixels.show()
+      cpx.pixels.brightness = 0.3
+      for p in range(10):
+        cpx.pixels[p] = c
 
     def fade(self, c0, c1, duration, steps):
       t = 0
@@ -56,33 +65,19 @@ class Crocky:
           time.sleep(duration / steps)
 
     def onTouch(self):
-        f = open("um_i_love_you_mama.wav", "rb")
-        a = audioio.AudioOut(board.SPEAKER, f)
-        a.play()
-
         self.fade(self.color_normal, self.color_happy, duration=0.5, steps=10)
-
+        cpx.play_file("um_i_love_you_mama.wav")
         while self.touch1.value:
             time.sleep(.1)
-        if a.playing:
-            a.stop()
-
         self.fade(self.color_happy, self.color_normal, duration=0.5, steps=10)
 
     def growl(self):
-        f = open("gator.wav", "rb")
-        a = audioio.AudioOut(board.SPEAKER, f)
-        a.play()
-        i = 0
-        while a.playing:
-            if i == 0:
-                self.setRing(self.color_normal)
-                i = 1
-            else:
-                self.setRing(self.color_growling)
-                i = 0
-            time.sleep(.1)
-        self.setRing(self.color_normal)
+        cpx.play_file("gator.wav")
+        for t in range(10):
+          self.setRing(self.color_growling)
+          time.sleep(.1)
+          self.setRing(self.color_normal)
+          time.sleep(.1)
 
     def now(self):
         return time.monotonic()
@@ -90,20 +85,31 @@ class Crocky:
     def dlog(self, msg):
         print("%12.6f: %s" % (time.monotonic(), msg))
 
+    def update_accel(self):
+        self.a = cpx.acceleration
+        pass
+
     def update(self):
         t_now = self.now()
         self.setRing(self.color_normal)
-        if self.touch1.value:
+        if cpx.tapped:
             self.dlog("accept petting")
             self.onTouch()
 
-        self.dlog("slide: %d" % self.slide.value)
+        self.update_accel()
+
+        while self.a[2] < 0:
+          self.dlog("upside down! sleeeeepy...")
+          self.fade(self.color_sleep1, self.color_sleep2, 1.0, 10)
+          self.fade(self.color_sleep2, self.color_sleep1, 1.0, 10)
+          self.update_accel()
+
+        # self.dlog("slide: %d" % self.slide.value)
 
         if t_now - self.last_growl > 10.0:
             self.dlog("time to growl")
-            if self.slide.value:
-                self.dlog("growl")
-                self.growl()
+            if cpx.switch:
+              self.growl()
             self.last_growl = self.now()
 
 def test_neo(c):
