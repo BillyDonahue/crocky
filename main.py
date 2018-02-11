@@ -23,10 +23,6 @@ class Crocky:
 
         self.touch1 = touchio.TouchIn(board.A2)
 
-        #self.slide = digitalio.DigitalInOut(board.D7)
-        #self.slide.direction = digitalio.Direction.INPUT
-        #self.slide.pull = digitalio.Pull.UP
-
         # self.numPixels = 10
         # self.neopixels = neopixel.NeoPixel(board.NEOPIXEL, self.numPixels,
         #                                    brightness=0.2, auto_write=False)
