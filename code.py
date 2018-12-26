@@ -1,13 +1,11 @@
 # Crocky
 # (Circuit Playground Express)
 
-import array
-# import audioio
+
 import board
 import digitalio
-# import math
-# import neopixel
 import time
+import array
 import touchio
 
 from adafruit_circuitplayground.express import cpx
@@ -15,26 +13,14 @@ from adafruit_circuitplayground.express import cpx
 class Crocky:
 
     def __init__(self):
-        # spkrenable = digitalio.DigitalInOut(board.SPEAKER_ENABLE)
-        # spkrenable.direction = digitalio.Direction.OUTPUT
-        # spkrenable.value = True
-
         cpx.detect_taps = 1
-
         self.touch1 = touchio.TouchIn(board.A2)
-
-        # self.numPixels = 10
-        # self.neopixels = neopixel.NeoPixel(board.NEOPIXEL, self.numPixels,
-        #                                    brightness=0.2, auto_write=False)
-        self.color_normal = [0x00, 0x44, 0x00]
-        self.color_growling = [0x00, 0x88, 0x00]
-        self.color_happy = [0x44, 0x00, 0x00]
-
-        self.color_sleep1 = [0x22, 0x22, 0x22]
-        self.color_sleep2 = [0x00, 0x00, 0x00]
-
+        self.color_normal = (0x00, 0x44, 0x00)
+        self.color_growling = (0x00, 0x88, 0x00)
+        self.color_happy = (0x44, 0x00, 0x00)
+        self.color_sleep1 = (0x22, 0x22, 0x22)
+        self.color_sleep2 = (0x00, 0x00, 0x00)
         self.last_growl = self.now()
-
         self.a = (0, 0, 0)
 
     def interp(self, x0, x1, frac):
@@ -44,12 +30,13 @@ class Crocky:
       out = []
       for i in range(0, 3):
         out.append(int(self.interp(v0[i], v1[i], frac)))
-      return out
+      return tuple(out)
 
     def setRing(self, c):
       cpx.pixels.brightness = 0.2
       for p in range(10):
-        cpx.pixels[p] = c
+          cpx.pixels[p] = c
+      #cpx.pixels[0] = 0x00ff00
 
     def fade(self, c0, c1, duration, steps):
       t = 0
@@ -91,40 +78,19 @@ class Crocky:
         if cpx.tapped:
             self.dlog("accept petting")
             self.onTouch()
-
         self.update_accel()
-
         while self.a[2] < 0:
           self.dlog("upside down! sleepy...")
           self.fade(self.color_sleep1, self.color_sleep2, 0.5, 5)
           self.fade(self.color_sleep2, self.color_sleep1, 0.5, 5)
+          cpx.play_file("snore.wav")
           self.update_accel()
-
         # self.dlog("slide: %d" % self.slide.value)
-
         if t_now - self.last_growl > 10.0:
             self.dlog("time to growl")
             if cpx.switch:
               self.growl()
             self.last_growl = self.now()
-
-def test_neo(c):
-    neo = neopixel.NeoPixel(board.NEOPIXEL, 10,
-                            brightness=0.2, auto_write=False)
-    cl = []
-    for p in range(10):
-        cl.append(c)
-    neo[:] = cl
-    neo.show()
-
-def run_test_neo():
-    i = 0
-    while True:
-        test_neo([i,i,i])
-        i += 1
-        if i==255:
-            i = 0
-        time.sleep(0.1)
 
 crocky = Crocky()
 
